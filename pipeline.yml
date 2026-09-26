@@ -1,0 +1,114 @@
+name: Tourism Project Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  register-dataset:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install huggingface_hub pandas
+      - name: Upload dataset to Hugging Face Dataset Repository
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_DATASET_REPO: ${{ secrets.HF_DATASET_REPO }}
+        run: |
+          python - <<'PY'
+          import os
+          from huggingface_hub import HfApi
+          api = HfApi(token=os.environ["HF_TOKEN"])
+          repo = os.environ["HF_DATASET_REPO"]
+          api.create_repo(repo_id=repo, repo_type="dataset", exist_ok=True)
+          api.upload_file(
+              path_or_fileobj="tourism_project/data/tourism.csv",
+              path_in_repo="tourism.csv",
+              repo_id=repo,
+              repo_type="dataset",
+          )
+          PY
+
+  data-prep:
+    needs: register-dataset
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements-ci.txt
+      - name: Validate dataset
+        run: python tourism_project/model_building/data_validation.py
+      - name: Upload validation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-validation-report
+          path: tourism_project/model_building/data_validation_report.json
+
+  model-training:
+    needs: data-prep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements-ci.txt
+      - name: Start MLflow server
+        run: |
+          nohup mlflow server --host 127.0.0.1 --port 5000 > mlflow.log 2>&1 &
+          sleep 8
+      - name: Train and register model
+        run: python tourism_project/model_building/train.py
+      - name: Upload model artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tourism-model
+          path: |
+            tourism_project/deployment/model.joblib
+            tourism_project/deployment/feature_metadata.json
+            tourism_project/model_building/test_metrics.json
+            tourism_project/model_building/threshold_search.csv
+
+  deploy-hosting:
+    needs: model-training
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install huggingface_hub
+      - name: Download trained model artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: tourism-model
+          path: tourism_project
+      - name: Push files to frontend Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_REPO: ${{ secrets.HF_SPACE_REPO }}
+        run: |
+          python - <<'PY'
+          import os
+          from huggingface_hub import HfApi
+          api = HfApi(token=os.environ["HF_TOKEN"])
+          repo = os.environ["HF_SPACE_REPO"]
+          api.create_repo(repo_id=repo, repo_type="space", space_sdk="docker", exist_ok=True)
+          api.upload_folder(
+              folder_path="tourism_project/deployment",
+              repo_id=repo,
+              repo_type="space",
+              delete_patterns="*",
+          )
+          PY
