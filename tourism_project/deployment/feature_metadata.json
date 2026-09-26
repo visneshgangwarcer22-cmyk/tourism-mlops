@@ -1,0 +1,101 @@
+{
+  "numeric": {
+    "Age": {
+      "min": 18.0,
+      "max": 61.0,
+      "median": 36.0
+    },
+    "CityTier": {
+      "min": 1.0,
+      "max": 3.0,
+      "median": 1.0
+    },
+    "DurationOfPitch": {
+      "min": 5.0,
+      "max": 127.0,
+      "median": 14.0
+    },
+    "NumberOfPersonVisiting": {
+      "min": 1.0,
+      "max": 5.0,
+      "median": 3.0
+    },
+    "NumberOfFollowups": {
+      "min": 1.0,
+      "max": 6.0,
+      "median": 4.0
+    },
+    "PreferredPropertyStar": {
+      "min": 3.0,
+      "max": 5.0,
+      "median": 3.0
+    },
+    "NumberOfTrips": {
+      "min": 1.0,
+      "max": 22.0,
+      "median": 3.0
+    },
+    "Passport": {
+      "min": 0.0,
+      "max": 1.0,
+      "median": 0.0
+    },
+    "PitchSatisfactionScore": {
+      "min": 1.0,
+      "max": 5.0,
+      "median": 3.0
+    },
+    "OwnCar": {
+      "min": 0.0,
+      "max": 1.0,
+      "median": 1.0
+    },
+    "NumberOfChildrenVisiting": {
+      "min": 0.0,
+      "max": 3.0,
+      "median": 1.0
+    },
+    "MonthlyIncome": {
+      "min": 1000.0,
+      "max": 98678.0,
+      "median": 22418.0
+    }
+  },
+  "categories": {
+    "TypeofContact": [
+      "Company Invited",
+      "Self Enquiry"
+    ],
+    "Occupation": [
+      "Free Lancer",
+      "Large Business",
+      "Salaried",
+      "Small Business"
+    ],
+    "Gender": [
+      "Fe Male",
+      "Female",
+      "Male"
+    ],
+    "ProductPitched": [
+      "Basic",
+      "Deluxe",
+      "King",
+      "Standard",
+      "Super Deluxe"
+    ],
+    "MaritalStatus": [
+      "Divorced",
+      "Married",
+      "Single",
+      "Unmarried"
+    ],
+    "Designation": [
+      "AVP",
+      "Executive",
+      "Manager",
+      "Senior Manager",
+      "VP"
+    ]
+  }
+}
